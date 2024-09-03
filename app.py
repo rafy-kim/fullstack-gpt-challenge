@@ -83,9 +83,6 @@ with st.sidebar:
             st.session_state["api_key_valid"] = False
 
 
-    print(os.environ["OPENAI_API_KEY"])
-
-
 if "api_key_valid" in st.session_state and st.session_state["api_key_valid"]:
 
     llm = ChatOpenAI(
