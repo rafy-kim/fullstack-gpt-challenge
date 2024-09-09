@@ -185,9 +185,11 @@ def load_website(url):
     )
     loader = SitemapLoader(
         url,
-        # filter_urls=[
-        #     r"^(.*product).*",
-        # ],
+        filter_urls=[
+            r"^(.*\/ai-gateway\/).*",
+            r"^(.*\/vectorize\/).*",
+            r"^(.*\/workers-ai\/).*",
+        ],
         parsing_function=parse_page,
     )
     loader.requests_per_second = 2

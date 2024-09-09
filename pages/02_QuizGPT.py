@@ -231,4 +231,4 @@ else:
             st.error("You didn't answer all questions correctly.")
             if st.button("Try Again"):
                 reset_quiz()
-                st.experimental_rerun()
+                st.rerun()
