@@ -1,0 +1,24 @@
+XZ Utils backdoor - Wikipedia
+The XZ Backdoor: Everything You Need to Know - WIRED
+The XZ Backdoor explained - Cybernews
+The Mystery of 'Jia Tan,' the XZ Backdoor Mastermind - WIRED
+All about the xz-utils backdoor | Kali Linux Blog
+How one volunteer stopped a backdoor from exposing Linux systems ...
+XZ Utils Backdoor — Everything You Need to Know, and What ... - Akamai
+Backdoor found in widely used Linux utility targets encrypted SSH ...
+The XZ Utils backdoor (CVE-2024-3094): Everything you need to ... - Datadog
+XZ Utils Supply Chain Attack: A Threat Actor Spent Two Years to ...
+CVE-2024-3094 XZ Backdoor: All you need to know - JFrog
+XZ Backdoor: The full story in one place - daily.dev
+XZ Utils Backdoor | Threat Actor Planned to Inject ... - SentinelOne
+500ms to midnight: XZ / liblzma backdoor - Elastic
+The XZ Utils Linux Backdoor: How It Happened & What We Can Learn ...
+Microsoft FAQ and guidance for XZ Utils backdoor
+How the XZ backdoor works - LWN.net
+ELI5: The recently discovered XZ backdoor : r/explainlikeimfive - Reddit
+xz Backdoor CVE-2024-3094 - Open Source Security Foundation
+Here's How Millions of Linux Computers Almost Got Hacked - The Intercept
+XZ Utils backdoor update: Which Linux distros are affected and what can ...
+Urgent: Secret Backdoor Found in XZ Utils Library, Impacts Major Linux ...
+Arch Linux - News: The xz package has been backdoored
+Бекдор В Xz — Вікіпедія
