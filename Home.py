@@ -1,5 +1,6 @@
 import os
 import openai
+import requests
 import streamlit as st
 
 
@@ -37,33 +38,44 @@ st.sidebar.markdown(
     unsafe_allow_html=True
 )
 
-
 def validate_api_key(api_key):
     try:
-        openai.api_key = api_key
-        openai.Engine.list()  # 유효성 검사용 요청
-        return True
-    except openai.error.AuthenticationError:
+        headers = {
+            "Authorization": f"Bearer {api_key}"
+        }
+        # Make a simple request to OpenAI's models endpoint for validation
+        response = requests.get("https://api.openai.com/v1/models", headers=headers)
+        
+        # Check if the response is successful (200 OK)
+        if response.status_code == 200:
+            return True
+        else:
+            return False
+    except Exception as e:
+        st.error(f"API Key validation failed: {str(e)}")
         return False
 
-# 사이드바에서 API 키 입력 및 검증 처리
+# Sidebar input for OpenAI API key validation
 with st.sidebar:
-    # 세션 상태에서 api_key_valid를 확인하여 처리
+    # Ensure the session state tracks API key validity
     if "api_key_valid" not in st.session_state:
         st.session_state["api_key_valid"] = False
     
     if not st.session_state["api_key_valid"]:
+        # Input field for API key, hidden with password type
         api_key = st.text_input("Input your OpenAI API Key", type="password")
+        
         if api_key:
+            # Validate the API key
             if validate_api_key(api_key):
                 st.session_state["api_key_valid"] = True
                 os.environ["OPENAI_API_KEY"] = api_key
-                st.experimental_rerun()  # 페이지 리렌더링
+                st.rerun()  # Rerun the app after key validation
             else:
                 st.error("Invalid API key. Please try again.")
     else:
         st.success("API key is valid!")
-
+        
 
 st.warning("You need to input a valid API key to access the apps.")
 st.markdown(

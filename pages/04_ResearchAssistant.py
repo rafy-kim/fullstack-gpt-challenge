@@ -1,29 +1,10 @@
-import requests
-import wikipedia
 import json
-from urllib.parse import urlparse, parse_qs
-from typing import Type
 from langchain.chat_models import ChatOpenAI
-from langchain.tools import BaseTool
-from pydantic import BaseModel, Field
-from langchain.agents import initialize_agent, AgentType
-from bs4 import BeautifulSoup
 import streamlit as st
-from langchain.utilities.duckduckgo_search import DuckDuckGoSearchAPIWrapper
 import time
-# import openai as client
-from openai import OpenAI
-client = OpenAI()
-
-# assistant = client.beta.assistants.create(
-#     name="Research Assistant2",
-#     instructions="You help users do research on query using by duckduckgo and wikipedia.",
-#     model="gpt-4o-mini",
-#     tools=functions,
-# )
-# print(assistant)
-assistant_id = "asst_G2BTRBBFDmC05QOpp06KvLsr"
-
+import openai as client
+from langchain.tools import WikipediaQueryRun, DuckDuckGoSearchRun
+from langchain.utilities import WikipediaAPIWrapper
 
 
 # 이전 과제에서 만든 에이전트를 OpenAI 어시스턴트로 리팩터링합니다.
@@ -78,81 +59,6 @@ llm = ChatOpenAI(
 )
 
 
-def get_docs_from_dgg(inputs):
-    try:
-        # DuckDuckGo 검색
-        search_url = f"https://html.duckduckgo.com/html/?q={query}"
-        headers = {'User-Agent': 'Mozilla/5.0'}
-        response = requests.get(search_url, headers=headers)
-        if response.status_code == 200:
-            soup = BeautifulSoup(response.text, 'html.parser')
-            results = soup.find_all('a', class_='result__a')
-            
-            # 각 웹사이트의 링크를 따라가서 콘텐츠 추출
-            extracted_content = []
-            print(len(results))
-            for result in results[:5]:
-                url = result['href']
-                actual_url = extract_actual_url(url)
-                print(actual_url)
-                if actual_url:
-                    website_content = fetch_website_content(actual_url)
-                    if website_content:
-                        extracted_content.append(website_content)
-            
-            all_content = "\n\n".join(extracted_content)
-            # save_to_txt(f"research_DDG.txt", all_content)
-            return all_content
-        else:
-            return f"Error fetching results from DuckDuckGo with status code {response.status_code}."
-    except Exception as e:
-        return f"Error fetching results from DuckDuckGo: {str(e)}"
-
-def extract_actual_url(self, duckduckgo_url: str):
-    """DuckDuckGo 리다이렉션 URL에서 실제 URL을 추출하는 함수"""
-    parsed_url = urlparse(duckduckgo_url)
-    query_params = parse_qs(parsed_url.query)
-    actual_url = query_params.get('uddg', [None])[0]
-    
-    # DuckDuckGo 리다이렉션 URL에 HTTPS 스킴이 없을 경우 추가
-    if actual_url and not actual_url.startswith('http'):
-        actual_url = 'https://' + actual_url
-    return actual_url
-
-def fetch_website_content(self, url: str):
-    """웹사이트의 콘텐츠를 가져오는 함수"""
-    try:
-        headers = {'User-Agent': 'Mozilla/5.0'}
-        response = requests.get(url, headers=headers)
-        if response.status_code == 200:
-            soup = BeautifulSoup(response.text, 'html.parser')
-            paragraphs = soup.find_all('p')  # 주요 텍스트 콘텐츠 추출
-            return "\n".join([p.get_text() for p in paragraphs])
-        else:
-            return None
-    except Exception as e:
-        return f"Error fetching content from {url}: {str(e)}"
-
-def get_docs_from_wiki(inputs):
-    try:
-        # query = inputs["query"]
-        # headers = {'User-Agent': 'Mozilla/5.0'}
-        # wiki_wiki = wikipediaapi.Wikipedia('en', headers=headers)  
-        # page = wiki_wiki.page(query)
-        page = wikipedia.page(query)
-        if page.exists():
-            # save_to_txt(f"research_WIKI.txt", page.text)
-            # return page.text
-            return page.content
-        else:
-            return f"No Wikipedia page found for {query}."
-    except Exception as e:
-        return f"Error fetching results from Wikipedia: {str(e)}"
-
-
-
-
-
 def send_message(thread_id, content):
     return client.beta.threads.messages.create(
         thread_id=thread_id,
@@ -202,14 +108,21 @@ def paint_message(message, role, save=True):
         st.session_state["messages"].append({"message": message, "role": role})
 
 
+def dgg_get_docs(inputs):
+    query = inputs["query"]
+    ddg = DuckDuckGoSearchRun()
+    return ddg.run(query)
 
+
+def wiki_get_docs(inputs):
+    query = inputs["query"]
+    wikipedia = WikipediaQueryRun(api_wrapper=WikipediaAPIWrapper())
+    return wikipedia.invoke(query)
 
 
 functions_map = {
-    "get_docs_from_dgg": get_docs_from_dgg,
-    "get_docs_from_wiki": get_docs_from_wiki,
-    # "extract_actual_url": extract_actual_url,
-    # "fetch_website_content": fetch_website_content,
+    "dgg_get_docs": dgg_get_docs,
+    "wiki_get_docs": wiki_get_docs,
 }
 
 
@@ -217,7 +130,7 @@ functions = [
     {
         "type": "function",
         "function": {
-            "name": "get_docs_from_dgg",
+            "name": "dgg_get_docs",
             "description": "Given the query returns its related documents using by duckduckgosearch engine.",
             "parameters": {
                 "type": "object",
@@ -234,7 +147,7 @@ functions = [
     {
         "type": "function",
         "function": {
-            "name": "get_docs_from_wiki",
+            "name": "wiki_get_docs",
             "description": "Given the query returns its related documents using by wikipedia dictionary.",
             "parameters": {
                 "type": "object",
@@ -248,16 +161,17 @@ functions = [
             },
         },
     },
-
 ]
 
-
+# assistant = client.beta.assistants.create(
+#     name="Research Assistant",
+#     instructions="You help users do research on query using by duckduckgo and wikipedia.",
+#     model="gpt-4o-mini",
+#     tools=functions,
+# )
+assistant_id = "asst_rtrqB8zsqBQfntMyW58WJI8z"
 
 query = st.chat_input("Research about ...")
-
-
-
-
 
 
 def paint_history():
@@ -313,8 +227,3 @@ if query:
                 }
             )
             st.markdown(message)
-
-
-
-
-
