@@ -39,11 +39,17 @@ st.sidebar.markdown(
     unsafe_allow_html=True
 )
 
+def redirect(target_url):
+    st.markdown(f"""
+        <meta http-equiv="refresh" content="0; url={target_url}">
+        """, unsafe_allow_html=True)
+
 # API 키 유효성 확인
 if "api_key_valid" not in st.session_state or not st.session_state["api_key_valid"]:
     st.error("You do not have access to this page. Please provide a valid API key.")
+    time.sleep(0.5)
+    redirect("/")
     st.stop()  # 페이지 실행 중지
-
 
 st.markdown(
     """
